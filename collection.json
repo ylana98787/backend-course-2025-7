@@ -1,0 +1,57 @@
+{
+	"info": {
+		"_postman_id": "ebd9259b-a8d5-4362-a6cd-65e778cee39f",
+		"name": "Backend-course2025-6",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "50024717",
+		"_collection_link": "https://uliana-novoselska-1876014.postman.co/workspace/Uliana's-Workspace~e857abdb-2d88-4965-89c9-32024d50287b/collection/50024717-ebd9259b-a8d5-4362-a6cd-65e778cee39f?action=share&source=collection_link&creator=50024717"
+	},
+	"item": [
+		{
+			"name": "new device",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "New Request",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "Base_url",
+			"value": "http://localhost:3000"
+		}
+	]
+}

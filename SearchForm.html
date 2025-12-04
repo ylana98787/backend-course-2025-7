@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Пошук пристрою - Backend Course 2025-6</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: #8e44ad;
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        
+        .form-container {
+            padding: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #9b59b6;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(155, 89, 182, 0.4);
+        }
+        
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #7f8c8d;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .back-link:hover {
+            color: #9b59b6;
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 6px;
+            background: #f8f9fa;
+            border-left: 4px solid #9b59b6;
+            display: none;
+        }
+        
+        .result h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .result-item {
+            margin-bottom: 8px;
+        }
+        
+        .result-label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .photo-link {
+            color: #3498db;
+            text-decoration: none;
+        }
+        
+        .photo-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Пошук пристрою</h1>
+            <p>Backend Course 2025-6 - Система інвентаризації</p>
+        </div>
+        
+        <div class="form-container">
+            <form id="searchForm">
+                <div class="form-group">
+                    <label for="id" class="required">ID пристрою</label>
+                    <input type="number" id="id" name="id" required min="1" 
+                           placeholder="Введіть числовий ID пристрою...">
+                </div>
+                
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="has_photo" name="has_photo" value="true">
+                        <label for="has_photo">Додати посилання на фото до опису</label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-btn">🔍 Знайти пристрій</button>
+            </form>
+            
+            <div id="result" class="result"></div>
+            
+            <a href="/" class="back-link">← Повернутися на головну сторінку</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const submitBtn = this.querySelector('.submit-btn');
+            const resultDiv = document.getElementById('result');
+            
+            // Показати завантаження
+            submitBtn.textContent = '⏳ Пошук...';
+            submitBtn.disabled = true;
+            resultDiv.style.display = 'none';
+            
+            try {
+                const urlParams = new URLSearchParams();
+                for (let [key, value] of formData.entries()) {
+                    urlParams.append(key, value);
+                }
+                
+                const response = await fetch('/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: urlParams
+                });
+                
+                const result = await response.json();
+                
+                if (response.status === 200) {
+                    resultDiv.className = 'result';
+                    resultDiv.innerHTML = `
+                        <h3>✅ Пристрій знайдено</h3>
+                        <div class="result-item">
+                            <span class="result-label">ID:</span> ${result.id}
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Назва:</span> ${result.inventory_name}
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Опис:</span> ${result.description}
+                        </div>
+                        ${result.photo_url ? `
+                            <div class="result-item">
+                                <span class="result-label">Фото:</span> 
+                                <a href="${result.photo_url}" class="photo-link" target="_blank">Переглянути фото</a>
+                            </div>
+                        ` : ''}
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <h3>❌ Пристрій не знайдено</h3>
+                        <p>${result.error || 'Спробуйте інший ID'}</p>
+                    `;
+                }
+                
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <h3>❌ Помилка мережі</h3>
+                    <p>Перевірте підключення до сервера</p>
+                `;
+            } finally {
+                resultDiv.style.display = 'block';
+                submitBtn.textContent = '🔍 Знайти пристрій';
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

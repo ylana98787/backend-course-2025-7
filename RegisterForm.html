@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Реєстрація пристрою - Backend Course 2025-6</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: #2c3e50;
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        
+        .form-container {
+            padding: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        input[type="text"],
+        textarea,
+        input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+        }
+        
+        .required::after {
+            content: " *";
+            color: #e74c3c;
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #7f8c8d;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .back-link:hover {
+            color: #3498db;
+        }
+        
+        .response {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            display: none;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 Реєстрація пристрою</h1>
+            <p>Backend Course 2025-6 - Система інвентаризації</p>
+        </div>
+        
+        <div class="form-container">
+            <form id="registerForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="inventory_name" class="required">Назва пристрою</label>
+                    <input type="text" id="inventory_name" name="inventory_name" required 
+                           placeholder="Наприклад: Ноутбук Dell, Смартфон Samsung...">
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Опис пристрою</label>
+                    <textarea id="description" name="description" 
+                              placeholder="Опишіть стан, характеристики або особливості пристрою..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="photo">Фото пристрою</label>
+                    <input type="file" id="photo" name="photo" accept="image/*">
+                    <small style="color: #7f8c8d; font-size: 14px;">Підтримуються формати: JPG, PNG, GIF</small>
+                </div>
+                
+                <button type="submit" class="submit-btn">✅ Зареєструвати пристрій</button>
+            </form>
+            
+            <div id="response" class="response"></div>
+            
+            <a href="/" class="back-link">← Повернутися на головну сторінку</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const submitBtn = this.querySelector('.submit-btn');
+            const responseDiv = document.getElementById('response');
+            
+            // Показати завантаження
+            submitBtn.textContent = '⏳ Завантаження...';
+            submitBtn.disabled = true;
+            responseDiv.style.display = 'none';
+            
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.status === 201) {
+                    responseDiv.className = 'response success';
+                    responseDiv.innerHTML = `
+                        <strong>✅ Успішно!</strong><br>
+                        Пристрій зареєстровано з ID: ${result.item.id}<br>
+                        Назва: ${result.item.inventory_name}
+                    `;
+                    this.reset();
+                } else {
+                    responseDiv.className = 'response error';
+                    responseDiv.innerHTML = `
+                        <strong>❌ Помилка!</strong><br>
+                        ${result.error || 'Невідома помилка'}
+                    `;
+                }
+                
+            } catch (error) {
+                responseDiv.className = 'response error';
+                responseDiv.innerHTML = `
+                    <strong>❌ Помилка мережі!</strong><br>
+                    Перевірте підключення до сервера
+                `;
+            } finally {
+                responseDiv.style.display = 'block';
+                submitBtn.textContent = '✅ Зареєструвати пристрій';
+                submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>

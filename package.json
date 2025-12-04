@@ -1,0 +1,30 @@
+{
+  "name": "backend-course-2025-6",
+  "version": "1.0.0",
+  "description": "Backend Course 2025-6 - Web Server with CLI and Inventory API",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js --host localhost --port 3000 --cache ./cache",
+    "dev": "nodemon main.js --host localhost --port 3000 --cache ./cache",
+    "server": "nodemon main.js --host 0.0.0.0 --port 3000 --cache ./cache",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "backend",
+    "server",
+    "api",
+    "inventory",
+    "web",
+    "cli"
+  ],
+  "author": "Ylana bc2025-6",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^11.1.0",
+    "express": "^5.1.0",
+    "superagent": "^8.1.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
