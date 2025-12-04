@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  # 1. Сервіс Бази Даних (PostgreSQL)
+  db:
+    image: postgres:15-alpine
+    container_name: bc7_postgres_db
+    restart: always
+    volumes:
+      # Зберігаємо дані БД, щоб вони не зникали
+      - postgres_data:/var/lib/postgresql/data
+      # Монтуємо скрипт для ініціалізації (Крок 3)
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+    ports:
+      - "5432:5432"
+    # Змінні БД, які візьмуться з файлу .env
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+
+  # 2. Сервіс Express.js Додатка
+  app:
+    build: . # Використовуємо Dockerfile з цього каталогу
+    container_name: bc7_express_app
+    restart: always
+    ports:
+      - "8080:3000" # Мапуємо 8080 хоста на 3000 контейнера
+    volumes:
+      # Монтуємо код для розробки (nodemon побачить зміни)
+      - .:/usr/src/app
+      # Ізолюємо node_modules контейнера від хостових
+      - /usr/src/app/node_modules
+    depends_on:
+      - db
+    # Змінні середовища візьмуться з файлу .env (Крок 4)
+    env_file:
+      - .env
+    # Команда для запуску в режимі розробки (Крок 2)
+    command: npm run dev 
+
+volumes:
+  postgres_data:
