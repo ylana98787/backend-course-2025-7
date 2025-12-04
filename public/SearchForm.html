@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Пошук пристрою - Backend Course 2025-6</title>
+    <title>Пошук пристрою - Backend Course 2025-7</title>
     <style>
         * {
             box-sizing: border-box;
@@ -46,6 +46,24 @@
             font-size: 16px;
         }
         
+        .nav {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .nav a {
+            color: #9b59b6;
+            text-decoration: none;
+            margin: 0 10px;
+            font-weight: 500;
+        }
+        
+        .nav a:hover {
+            text-decoration: underline;
+        }
+        
         .form-container {
             padding: 30px;
         }
@@ -79,6 +97,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            margin-top: 10px;
         }
         
         .checkbox-group input[type="checkbox"] {
@@ -95,7 +114,7 @@
             border-radius: 6px;
             cursor: pointer;
             width: 100%;
-            transition: transform 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
         
         .submit-btn:hover {
@@ -103,17 +122,11 @@
             box-shadow: 0 5px 15px rgba(155, 89, 182, 0.4);
         }
         
-        .back-link {
-            display: block;
-            text-align: center;
-            margin-top: 20px;
-            color: #7f8c8d;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-        
-        .back-link:hover {
-            color: #9b59b6;
+        .submit-btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
         
         .result {
@@ -128,15 +141,24 @@
         .result h3 {
             color: #2c3e50;
             margin-bottom: 10px;
+            font-size: 1.3em;
         }
         
         .result-item {
             margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .result-item:last-child {
+            border-bottom: none;
         }
         
         .result-label {
             font-weight: 600;
             color: #2c3e50;
+            display: inline-block;
+            width: 120px;
         }
         
         .error {
@@ -148,10 +170,25 @@
         .photo-link {
             color: #3498db;
             text-decoration: none;
+            background: #e3f2fd;
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-top: 5px;
         }
         
         .photo-link:hover {
             text-decoration: underline;
+            background: #bbdefb;
+        }
+        
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border: 1px solid #bee5eb;
         }
     </style>
 </head>
@@ -159,10 +196,21 @@
     <div class="container">
         <div class="header">
             <h1>🔍 Пошук пристрою</h1>
-            <p>Backend Course 2025-6 - Система інвентаризації</p>
+            <p>Backend Course 2025-7 - Лабораторна робота №7</p>
+        </div>
+        
+        <div class="nav">
+            <a href="/">🏠 Головна</a>
+            <a href="/docs">📚 Документація</a>
+            <a href="/RegisterForm.html">📝 Реєстрація</a>
+            <a href="/inventory">📦 Інвентар</a>
         </div>
         
         <div class="form-container">
+            <div class="info">
+                <strong>ℹ️ Інформація:</strong> Введіть ID пристрою для пошуку. ID можна знайти на сторінці інвентаря.
+            </div>
+            
             <form id="searchForm">
                 <div class="form-group">
                     <label for="id" class="required">ID пристрою</label>
@@ -177,12 +225,17 @@
                     </div>
                 </div>
                 
-                <button type="submit" class="submit-btn">🔍 Знайти пристрій</button>
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <span id="btnText">🔍 Знайти пристрій</span>
+                    <span id="btnLoading" style="display: none;">⏳ Пошук...</span>
+                </button>
             </form>
             
             <div id="result" class="result"></div>
             
-            <a href="/" class="back-link">← Повернутися на головну сторінку</a>
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="/" style="color: #7f8c8d; text-decoration: none;">← Повернутися на головну сторінку</a>
+            </div>
         </div>
     </div>
 
@@ -191,11 +244,14 @@
             e.preventDefault();
             
             const formData = new FormData(this);
-            const submitBtn = this.querySelector('.submit-btn');
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const btnLoading = document.getElementById('btnLoading');
             const resultDiv = document.getElementById('result');
             
-            // Показати завантаження
-            submitBtn.textContent = '⏳ Пошук...';
+            // Show loading state
+            btnText.style.display = 'none';
+            btnLoading.style.display = 'inline';
             submitBtn.disabled = true;
             resultDiv.style.display = 'none';
             
@@ -215,31 +271,56 @@
                 
                 const result = await response.json();
                 
-                if (response.status === 200) {
+                if (response.ok) {
                     resultDiv.className = 'result';
-                    resultDiv.innerHTML = `
+                    
+                    let resultHTML = `
                         <h3>✅ Пристрій знайдено</h3>
                         <div class="result-item">
-                            <span class="result-label">ID:</span> ${result.id}
+                            <span class="result-label">ID:</span> ${result.data.id}
                         </div>
                         <div class="result-item">
-                            <span class="result-label">Назва:</span> ${result.inventory_name}
+                            <span class="result-label">Назва:</span> ${result.data.name}
                         </div>
                         <div class="result-item">
-                            <span class="result-label">Опис:</span> ${result.description}
+                            <span class="result-label">Опис:</span> ${result.data.description || 'Немає опису'}
                         </div>
-                        ${result.photo_url ? `
-                            <div class="result-item">
-                                <span class="result-label">Фото:</span> 
-                                <a href="${result.photo_url}" class="photo-link" target="_blank">Переглянути фото</a>
-                            </div>
-                        ` : ''}
+                        <div class="result-item">
+                            <span class="result-label">Ціна:</span> $${result.data.price}
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Кількість:</span> ${result.data.stock_quantity}
+                        </div>
                     `;
+                    
+                    if (result.data.photo_url) {
+                        resultHTML += `
+                            <div class="result-item">
+                                <span class="result-label">Фото:</span><br>
+                                <a href="${result.data.photo_url}" class="photo-link" target="_blank">
+                                    👉 Переглянути фото
+                                </a>
+                            </div>
+                        `;
+                    }
+                    
+                    if (result.message) {
+                        resultHTML += `
+                            <div class="result-item" style="margin-top: 15px; padding-top: 15px; border-top: 2px dashed #ddd;">
+                                <em>${result.message}</em>
+                            </div>
+                        `;
+                    }
+                    
+                    resultDiv.innerHTML = resultHTML;
                 } else {
                     resultDiv.className = 'result error';
                     resultDiv.innerHTML = `
                         <h3>❌ Пристрій не знайдено</h3>
                         <p>${result.error || 'Спробуйте інший ID'}</p>
+                        <p style="margin-top: 10px;">
+                            <a href="/inventory" style="color: #9b59b6;">Переглянути список всіх пристроїв</a>
+                        </p>
                     `;
                 }
                 
@@ -251,7 +332,8 @@
                 `;
             } finally {
                 resultDiv.style.display = 'block';
-                submitBtn.textContent = '🔍 Знайти пристрій';
+                btnText.style.display = 'inline';
+                btnLoading.style.display = 'none';
                 submitBtn.disabled = false;
             }
         });

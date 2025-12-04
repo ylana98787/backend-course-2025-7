@@ -1,30 +1,39 @@
 {
-  "name": "backend-course-2025-6",
+  "name": "backend-course-2025-7",
   "version": "1.0.0",
-  "description": "Backend Course 2025-6 - Web Server with CLI and Inventory API",
-  "main": "main.js",
+  "description": "Лабораторна робота №7: Docker та бази даних",
+  "main": "src/main.js",
   "scripts": {
-    "start": "node main.js --host localhost --port 3000 --cache ./cache",
-    "dev": "nodemon main.js --host localhost --port 3000 --cache ./cache",
-    "server": "nodemon main.js --host 0.0.0.0 --port 3000 --cache ./cache",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/main.js",
+    "dev": "nodemon src/main.js",
+    "debug": "nodemon --inspect=0.0.0.0:9229 src/main.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "docker:up": "docker-compose up --build",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
   },
   "keywords": [
-    "backend",
-    "server",
-    "api",
-    "inventory",
-    "web",
-    "cli"
+    "express",
+    "docker",
+    "postgresql",
+    "database",
+    "backend"
   ],
-  "author": "Ylana bc2025-6",
+  "author": "Ваше Імʼя bc2025-7",
   "license": "ISC",
   "dependencies": {
+    "express": "^4.18.2",
+    "pg": "^8.11.0",
+    "dotenv": "^16.3.1",
     "commander": "^11.1.0",
-    "express": "^5.1.0",
-    "superagent": "^8.1.2"
+    "multer": "^1.4.5-lts.1",
+    "cors": "^2.8.5",
+    "morgan": "^1.10.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
